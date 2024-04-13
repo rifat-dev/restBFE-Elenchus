@@ -1,11 +1,13 @@
 package com.atom.forumEngine.topicClientRestAPI.controller;
 
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.NoSuchElementException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -13,6 +15,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.atom.forumEngine.topicClientRestAPI.entity.MessageDTO;
@@ -79,7 +82,7 @@ public class TopicController {
         }
 
         try {
-            OutTopicWithMessagesDTO outTopicWithMessagesDTO = topicService.updateTopic(topicDTO);
+            OutTopicWithMessagesDTO outTopicWithMessagesDTO = topicService.updateTopic(topicDTO, PageRequest.of(0, 3, Sort.by("created").descending()));
             return ResponseEntity.ok().body(outTopicWithMessagesDTO);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -91,13 +94,16 @@ public class TopicController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getAllTopics() {
-        List<Topic> listAllTopics = topicService.getAllTopics();
+    public ResponseEntity<Page<Topic>> getAllTopics(@RequestParam(defaultValue = "0") int page,
+                                                    @RequestParam(defaultValue = "3") int size) {
+        Page<Topic> listAllTopics = topicService.getAllTopics(PageRequest.of(page, size));
         return ResponseEntity.ok().body(listAllTopics);
     }
 
     @GetMapping("/{topicId}")
-    public ResponseEntity<?> getListTopicMessages(@PathVariable("topicId") String topicId) {
+    public ResponseEntity<?> getListTopicMessages(@PathVariable("topicId") String topicId, 
+                                                  @RequestParam(defaultValue = "0") int page,
+                                                  @RequestParam(defaultValue = "3") int size) {
         if (topicId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -110,7 +116,7 @@ public class TopicController {
         }
 
         try {
-            OutTopicWithMessagesDTO outTopicWithMessagesDTO = topicService.getTopicMessages(idUUID);
+            OutTopicWithMessagesDTO outTopicWithMessagesDTO = topicService.getTopicMessages(idUUID, PageRequest.of(page, size));
             return ResponseEntity.ok().body(outTopicWithMessagesDTO);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -123,7 +129,9 @@ public class TopicController {
 
     @PostMapping("/{topicId}/message")
     public ResponseEntity<?> createMessage(@PathVariable("topicId") String topicId, 
-                                           @Valid @RequestBody MessageDTO messageDTO, BindingResult bindingResult) {
+                                           @Valid @RequestBody MessageDTO messageDTO, BindingResult bindingResult,
+                                           @RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "3") int size) {
         if (topicId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -148,7 +156,7 @@ public class TopicController {
         }
 
         try {
-            OutTopicWithMessagesDTO outTopicWithMessagesDTO = topicService.createNewMessage(idUUID, messageDTO);
+            OutTopicWithMessagesDTO outTopicWithMessagesDTO = topicService.createNewMessage(idUUID, messageDTO, PageRequest.of(page, size, Sort.by("created").descending()));
             return ResponseEntity.ok().body(outTopicWithMessagesDTO);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
@@ -161,7 +169,9 @@ public class TopicController {
 
     @PutMapping("/{topicId}/message")
     public ResponseEntity<?> updateMessage(@PathVariable("topicId") String topicId,
-                                           @Valid @RequestBody UpdateMessageDTO updateMessageDTO, BindingResult bindingResult) {
+                                           @Valid @RequestBody UpdateMessageDTO updateMessageDTO, BindingResult bindingResult,
+                                           @RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "3") int size) {
         if (topicId == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
@@ -187,7 +197,7 @@ public class TopicController {
         }
 
         try {
-            OutTopicWithMessagesDTO outTopicWithMessagesDTO = topicService.updateMessage(idUUID, updateMessageDTO);
+            OutTopicWithMessagesDTO outTopicWithMessagesDTO = topicService.updateMessage(idUUID, updateMessageDTO, PageRequest.of(page, size, Sort.by("created").descending()));
             return ResponseEntity.ok().body(outTopicWithMessagesDTO);
         } catch (NoSuchElementException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());

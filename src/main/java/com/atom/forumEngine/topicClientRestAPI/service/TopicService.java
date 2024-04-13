@@ -6,6 +6,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.NoSuchElementException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +65,7 @@ public class TopicService {
     }
 
     @Transactional
-    public OutTopicWithMessagesDTO updateTopic(TopicDTO topicDTO) {
+    public OutTopicWithMessagesDTO updateTopic(TopicDTO topicDTO, PageRequest pageable) {
 
         String idString = topicDTO.getId();
         String name = topicDTO.getName();
@@ -88,10 +91,10 @@ public class TopicService {
         topic.setName(name);
         this.topicRepository.save(topic);
 
-        List<Message> messageList = this.messageRepository.findAllByTopicId(idUUID);
+        Page<Message> messageList = this.messageRepository.findByTopicId(idUUID, pageable);
         List<OutAllFieldsMessageDTO> outAllFieldsMessageDTOList = new ArrayList<>();
 
-        for (Message messageItem : messageList) {
+        for (Message messageItem : messageList.getContent()) {
             outAllFieldsMessageDTOList.add(new OutAllFieldsMessageDTO(messageItem.getId().toString(), messageItem.getText(), 
                                                                       messageItem.getAuthor(), messageItem.getCreated()));
         }
@@ -99,7 +102,7 @@ public class TopicService {
         return new OutTopicWithMessagesDTO(topic.getId().toString(), topic.getName(), outAllFieldsMessageDTOList);
     }
 
-    public OutTopicWithMessagesDTO getTopicMessages(UUID idUUID) {
+    public OutTopicWithMessagesDTO getTopicMessages(UUID idUUID, PageRequest pageable) {
         Optional<Topic> topicOpt = this.topicRepository.findById(idUUID);
 
         if (topicOpt.isEmpty()) {
@@ -108,10 +111,10 @@ public class TopicService {
 
         Topic topic = topicOpt.get();
 
-        List<Message> messageList = this.messageRepository.findAllByTopicId(idUUID);
+        Page<Message> messageList = this.messageRepository.findByTopicId(idUUID, pageable);
         List<OutAllFieldsMessageDTO> outAllFieldsMessageDTOList = new ArrayList<>();
 
-        for (Message messageItem : messageList) {
+        for (Message messageItem : messageList.getContent()) {
             outAllFieldsMessageDTOList.add(new OutAllFieldsMessageDTO(messageItem.getId().toString(), messageItem.getText(), 
                                                                       messageItem.getAuthor(), messageItem.getCreated()));
         }
@@ -120,7 +123,7 @@ public class TopicService {
     }
 
     @Transactional
-    public OutTopicWithMessagesDTO createNewMessage(UUID idUUID, MessageDTO messageDTO) {
+    public OutTopicWithMessagesDTO createNewMessage(UUID idUUID, MessageDTO messageDTO, PageRequest pageable) {
         if (messageDTO == null || messageDTO.getText() == null || messageDTO.getAuthor() == null) {
             throw new IllegalArgumentException("Message and his fields cannot be null");
         }
@@ -139,7 +142,7 @@ public class TopicService {
         Message message = new Message(topic.getId(), text, author);
         this.messageRepository.save(message);
 
-        List<Message> messageList = this.messageRepository.findAllByTopicId(idUUID);
+        Page<Message> messageList = this.messageRepository.findByTopicId(idUUID, pageable);
         List<OutAllFieldsMessageDTO> outAllFieldsMessageDTOList = new ArrayList<>();
 
         for (Message messageItem : messageList) {
@@ -151,7 +154,7 @@ public class TopicService {
     }
 
     @Transactional
-    public OutTopicWithMessagesDTO updateMessage(UUID idUUID, UpdateMessageDTO updateMessageDTO) {
+    public OutTopicWithMessagesDTO updateMessage(UUID idUUID, UpdateMessageDTO updateMessageDTO, PageRequest pageable) {
         if (updateMessageDTO == null || updateMessageDTO.getText() == null 
                                      || updateMessageDTO.getAuthor() == null || updateMessageDTO.getId() == null) {
             throw new IllegalArgumentException("Message and his fields cannot be null");
@@ -187,7 +190,7 @@ public class TopicService {
         message.setText(text);
         this.messageRepository.save(message);
 
-        List<Message> messageList = this.messageRepository.findAllByTopicId(idUUID);
+        Page<Message> messageList = this.messageRepository.findByTopicId(idUUID, pageable);
         List<OutAllFieldsMessageDTO> outAllFieldsMessageDTOList = new ArrayList<>();
 
         for (Message messageItem : messageList) {
@@ -198,8 +201,8 @@ public class TopicService {
         return new OutTopicWithMessagesDTO(topic.getId().toString(), topic.getName(), outAllFieldsMessageDTOList);
     }
 
-    public List<Topic> getAllTopics() {
-        return this.topicRepository.findAll();
+    public Page<Topic> getAllTopics(Pageable pageable) {
+        return this.topicRepository.findAll(pageable);
     }
 
 }
