@@ -26,6 +26,8 @@ import com.atom.forumEngine.topicClientRestAPI.entity.UpdateMessageDTO;
 import com.atom.forumEngine.topicClientRestAPI.entity.OutTopicWithMessagesDTO;
 import com.atom.forumEngine.topicClientRestAPI.service.TopicService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +36,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/topic")
+@Tag(name = "Client API", description = "Client API for regular users")
 public class TopicController {
     
     private final TopicService topicService;
@@ -42,6 +45,7 @@ public class TopicController {
         this.topicService = topicService;
     }
 
+    @Operation(summary = "Create new topic", description = "Create new topic with first message in it")
     @PostMapping
     public ResponseEntity<?> createTopic(@Valid @RequestBody NewTopicDTO newTopicDTO, BindingResult bindingResult) {
         if (newTopicDTO == null || newTopicDTO.getTopicName() == null || newTopicDTO.getMessage() == null 
@@ -67,6 +71,7 @@ public class TopicController {
         }
     }
 
+    @Operation(summary = "Update topic", description = "Change title of a topic by its Id")
     @PutMapping
     public ResponseEntity<?> updateTopic(@Valid @RequestBody TopicDTO topicDTO, BindingResult bindingResult) {
         if (topicDTO == null || topicDTO.getId() == null || topicDTO.getName() == null) {
@@ -93,6 +98,7 @@ public class TopicController {
         }
     }
 
+    @Operation(summary = "Get all topics", description = "Get list of topics")
     @GetMapping
     public ResponseEntity<Page<Topic>> getAllTopics(@RequestParam(defaultValue = "0") int page,
                                                     @RequestParam(defaultValue = "3") int size) {
@@ -100,6 +106,7 @@ public class TopicController {
         return ResponseEntity.ok().body(listAllTopics);
     }
 
+    @Operation(summary = "Get selected topic", description = "Get all messages in the selected topic")
     @GetMapping("/{topicId}")
     public ResponseEntity<?> getListTopicMessages(@PathVariable("topicId") String topicId, 
                                                   @RequestParam(defaultValue = "0") int page,
@@ -127,6 +134,7 @@ public class TopicController {
         }
     }
 
+    @Operation(summary = "Create new message", description = "Create new message in the selected topic")
     @PostMapping("/{topicId}/message")
     public ResponseEntity<?> createMessage(@PathVariable("topicId") String topicId, 
                                            @Valid @RequestBody MessageDTO messageDTO, BindingResult bindingResult,
@@ -167,6 +175,7 @@ public class TopicController {
         }
     }
 
+    @Operation(summary = "Edit message", description = "Edit message in the selected topic")
     @PutMapping("/{topicId}/message")
     public ResponseEntity<?> updateMessage(@PathVariable("topicId") String topicId,
                                            @Valid @RequestBody UpdateMessageDTO updateMessageDTO, BindingResult bindingResult,

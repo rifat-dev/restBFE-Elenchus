@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.atom.forumEngine.topicClientRestAPI.service.MessageService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/message")
+@Tag(name = "Client API", description = "Client API for regular users")
 public class MessageController {
 
     private final MessageService messageService;
@@ -22,6 +26,7 @@ public class MessageController {
         this.messageService = messageService;
     }
 
+    @Operation(summary = "Delete message", description = "Remove message by message Id")
     @DeleteMapping("/{messageId}")
     public ResponseEntity<?> deleteMessage(@PathVariable("messageId") String messageId) {
         if (messageId == null) {

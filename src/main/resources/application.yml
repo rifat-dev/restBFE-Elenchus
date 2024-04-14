@@ -16,3 +16,6 @@ server:
         http-only: true
         same-site: strict
         secure: true
+springdoc:
+  api-docs:
+    path: /api-docs
